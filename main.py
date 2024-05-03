@@ -79,7 +79,7 @@ def next_turn(window,canvas,snake,food,score):
         # Set Score Label
         score.config(text=current_score) 
         canvas.delete("food")
-        food=Food.Food(canvas, WIDTH, HEIGHT,SPACE_SIZE, FOOD)             
+        food=Food.Food(canvas, WIDTH, HEIGHT,SPACE_SIZE, FOOD)
 
     else:
         # delete last square
@@ -89,7 +89,7 @@ def next_turn(window,canvas,snake,food,score):
 
     #Check Collision
     if collision(snake.coordinates):
-        game_over(canvas)
+        game_over(canvas,window,score)
     else:
         # Update Window
         window.after(SPEED, next_turn,window,canvas,snake,food,score)
@@ -112,7 +112,7 @@ def collision(snake_coordinates):
     else:
         return False
 
-def game_over(canvas): 
+def game_over(canvas,window,score): 
   
     canvas.delete() 
     canvas.create_text(canvas.winfo_width()/2,  
@@ -121,6 +121,26 @@ def game_over(canvas):
                        text="GAME OVER",  
                        fill="red", tag="gameover") 
     
+    restart_button = tk.Button(window, text="Restart", font=('consolas', 20),
+                               command=lambda: restart_game(canvas,restart_button,score,window))
+    restart_button.pack()
+
+def restart_game(canvas,restart_button,score,window):
+    canvas.delete("all")
+    restart_button.destroy()
+
+    # Reset global variables
+    global current_score, direction
+    current_score = 0
+    direction = "down"
+
+    # Create new Snake and Food objects
+    snake = Snake.Snake(canvas, BODY_SIZE, SPACE_SIZE, SNAKE)
+    food = Food.Food(canvas, WIDTH, HEIGHT, SPACE_SIZE, FOOD)
+
+    # Call next_turn function with fresh start
+    next_turn(window, canvas, snake, food, score) 
+
 def change_direction(new_direction):
     global direction
     if new_direction=="left" and direction != "right":
