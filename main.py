@@ -6,8 +6,8 @@ import time
 # Initialising Dimensions of Game 
 WIDTH = 500
 HEIGHT = 500
-SPEED = 10
-SPACE_SIZE = 10
+SPEED = 100
+SPACE_SIZE = 20
 BODY_SIZE = 2
 SNAKE = "#00FF00"
 FOOD = "#FFFFFF"
@@ -48,17 +48,16 @@ def main():
 
     # Create Snake Object 
     snake=Snake.Snake(canvas,BODY_SIZE,SPACE_SIZE,SNAKE)
-   
 
     # Create Food Object
     food=Food.Food(canvas, WIDTH, HEIGHT,SPACE_SIZE, FOOD)
 
     # Call next turn function
-    next_turn(window,canvas, snake,food)
+    next_turn(window,canvas, snake,food,score)
    
     window.mainloop()
 
-def next_turn(window,canvas,snake,food):
+def next_turn(window,canvas,snake,food,score):
     x,y=snake.coordinates[0]
     if direction == "up": 
         y -= SPACE_SIZE 
@@ -68,27 +67,59 @@ def next_turn(window,canvas,snake,food):
         x -= SPACE_SIZE 
     elif direction == "right": 
         x += SPACE_SIZE
-    
+        
     snake.coordinates.insert(0,(x,y))
     square=canvas.create_rectangle(x,y,x+ SPACE_SIZE,y+SPACE_SIZE,fill=SNAKE)
     snake.squares.insert(0,square)
-    print((food.coordinates[0]//10)*10,x,y)
-    if x==(food.coordinates[0]//10)*10 and y == (food.coordinates[0]//10)*10:
+    #print(f" discance x: {abs(x - food.coordinates[0])} and y {abs(x - food.coordinates[0])}")
+    if abs(x - food.coordinates[0]) <= 20 and abs(y - food.coordinates[1]) <= 20:
         global current_score
         current_score+=1
-        
-        # delete food  https://www.geeksforgeeks.org/snake-game-using-tkinter-python/
- 
 
+        # Set Score Label
+        score.config(text=current_score) 
+        canvas.delete("food")
+        food=Food.Food(canvas, WIDTH, HEIGHT,SPACE_SIZE, FOOD)             
 
-    # else delete last square
-    del(snake.coordinates[-1])
-    canvas.delete(snake.squares[-1])
-    del(snake.squares[-1])
+    else:
+        # delete last square
+        del(snake.coordinates[-1])
+        canvas.delete(snake.squares[-1])
+        del(snake.squares[-1])
 
-    # Wait 0.2 seconds before the update
-    time.sleep(0.2)
-    window.after(SPEED, next_turn,window,canvas,snake,food)
+    #Check Collision
+    if collision(snake.coordinates):
+        game_over(canvas)
+    else:
+        # Update Window
+        window.after(SPEED, next_turn,window,canvas,snake,food,score)
+
+def collision(snake_coordinates):
+    
+    x, y = snake_coordinates[0] 
+    # Check if Head collides with part of snake
+    for part in snake_coordinates[1:]:
+        if x==part[0] and y==part[1]:
+            return True
+    if x>WIDTH:
+        return True
+    elif x<0:
+        return True
+    elif y<0:
+        return True
+    elif y>HEIGHT:
+        return True
+    else:
+        return False
+
+def game_over(canvas): 
+  
+    canvas.delete() 
+    canvas.create_text(canvas.winfo_width()/2,  
+                       canvas.winfo_height()/2, 
+                       font=('consolas', 70),  
+                       text="GAME OVER",  
+                       fill="red", tag="gameover") 
     
 def change_direction(new_direction):
     global direction
